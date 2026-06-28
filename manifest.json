@@ -1,0 +1,58 @@
+{
+    "name": "email_plugin",
+    "display_name": "邮箱插件",
+    "version": "2.0.0",
+    "description": "为 Bot 提供邮箱收发的能力。支持轮询 IMAP 收取邮件进入 bot 私人收件箱流，通过 reply_email 动作直接 SMTP 发送回复。支持 QQ邮箱、Gmail、163邮箱、Outlook 等。三态管理（PENDING/READ/REPLIED）防止重复投递。",
+    "author": "言柒",
+    "license": "AGPL-v3.0",
+    "categories": ["tool"],
+    "tags": ["email", "imap", "smtp", "mail"],
+    "dependencies": {
+        "plugins": [],
+        "components": []
+    },
+    "include": [
+        {
+            "component_type": "config",
+            "component_name": "config",
+            "dependencies": []
+        },
+        {
+            "component_type": "service",
+            "component_name": "email_service",
+            "dependencies": []
+        },
+        {
+            "component_type": "adapter",
+            "component_name": "email_adapter",
+            "dependencies": []
+        },
+        {
+            "component_type": "chatter",
+            "component_name": "email_chatter",
+            "dependencies": []
+        },
+        {
+            "component_type": "action",
+            "component_name": "reply_email",
+            "dependencies": []
+        },
+        {
+            "component_type": "action",
+            "component_name": "mark_email_read",
+            "dependencies": []
+        },
+        {
+            "component_type": "tool",
+            "component_name": "check_email",
+            "dependencies": []
+        },
+        {
+            "component_type": "tool",
+            "component_name": "search_email",
+            "dependencies": []
+        }
+    ],
+    "entry_point": "plugin.py",
+    "min_core_version": "1.2.0-alpha"
+}
