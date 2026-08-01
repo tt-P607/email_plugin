@@ -1,4 +1,4 @@
-"""邮箱插件注册入口 v4。"""
+"""邮箱插件注册入口。"""
 
 from src.app.plugin_system.base import BasePlugin, register_plugin
 from src.app.plugin_system.api.log_api import get_logger
@@ -9,7 +9,6 @@ from .components.adapter import EmailAdapter
 from .components.chatter import EmailChatter
 from .components.actions import ReplyEmailAction, MarkEmailReadAction
 from .components.tools import CheckEmailTool, SearchEmailTool
-# from .components.tools import ListAttachmentsTool  # 附件功能入口暂未启用
 
 logger = get_logger("email_plugin", display="邮箱插件")
 
@@ -30,15 +29,8 @@ class EmailPlugin(BasePlugin):
         register_email_prompts()
         logger.info("邮箱插件提示词模板已注册")
 
-    async def on_plugin_unloaded(self) -> None:
-        """插件卸载时的逻辑。"""
-        pass
-
     def get_components(self) -> list[type]:
-        """注册该插件所有涉及的组件。
-
-        注意：ListAttachmentsTool 已实现但暂未注册，附件功能入口待后续设计后启用。
-        """
+        """返回邮箱收发、会话与管理组件。"""
         return [
             EmailService,
             EmailAdapter,
@@ -47,5 +39,4 @@ class EmailPlugin(BasePlugin):
             MarkEmailReadAction,
             CheckEmailTool,
             SearchEmailTool,
-            # ListAttachmentsTool,  # 附件功能入口暂未启用
         ]

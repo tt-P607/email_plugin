@@ -13,8 +13,8 @@ from src.app.plugin_system.base import BaseConfig, Field, SectionBase, config_se
 class EmailPluginConfig(BaseConfig):
     """邮箱插件的配置结构。"""
 
-    config_name: ClassVar[str] = "config"
-    config_description: ClassVar[str] = "邮箱插件收发与轮询配置"
+    name: ClassVar[str] = "config"
+    description: ClassVar[str] = "邮箱插件收发与轮询配置"
 
     @config_section("account")
     class AccountSection(SectionBase):

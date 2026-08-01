@@ -29,8 +29,8 @@ class ReplyEmailAction(BaseAction):
     直接通过 SMTP 发送纯文本邮件给指定收件人，支持附带附件。
     """
 
-    action_name = "reply_email"
-    action_description = (
+    name = "reply_email"
+    description = (
         "回复一封邮件。你收到邮件后如果想回复，请使用此动作。"
         "content 是邮件正文内容，to_email 是收件人邮箱地址（从发件人信息中获取），"
         "subject 是邮件主题。"
@@ -107,8 +107,8 @@ class MarkEmailReadAction(BaseAction):
     当 bot 查看了邮件但不需要回复时，可以使用此动作标记为已读。
     """
 
-    action_name = "mark_email_read"
-    action_description = (
+    name = "mark_email_read"
+    description = (
         "将邮件标记为已读。当你看过一封邮件但不需要回复时使用此动作。"
         "message_id 是要标记的邮件 Message-ID（可以从邮件信息中获取）。"
         "可以传入多个用逗号分隔的 ID 来批量标记。"

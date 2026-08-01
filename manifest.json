@@ -1,12 +1,21 @@
 {
     "name": "email_plugin",
+    "api_version": {"log_api": "1.0.0", "prompt_api": "1.0.0", "service_api": "1.0.0", "storage_api": "1.0.0"},
+
     "display_name": "邮箱插件",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "description": "为 Bot 提供邮箱收发的能力。支持轮询 IMAP 收取邮件进入 bot 私人收件箱流，通过 reply_email 动作直接 SMTP 发送回复。支持 QQ邮箱、Gmail、163邮箱、Outlook 等。三态管理（PENDING/READ/REPLIED）防止重复投递。",
     "author": "言柒",
     "license": "AGPL-v3.0",
-    "categories": ["tool"],
-    "tags": ["email", "imap", "smtp", "mail"],
+    "categories": [
+        "tool"
+    ],
+    "tags": [
+        "email",
+        "imap",
+        "smtp",
+        "mail"
+    ],
     "dependencies": {
         "plugins": [],
         "components": []

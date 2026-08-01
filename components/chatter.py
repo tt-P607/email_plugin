@@ -12,14 +12,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, AsyncGenerator
 
-from src.core.components.base.chatter import (
+from src.app.plugin_system.base import (
     BaseChatter,
     ChatterResult,
     Failure,
     Success,
     WaitResumeEvent,
 )
-from src.core.components.types import ChatType
+from src.app.plugin_system.types import ChatType
 from src.app.plugin_system.api.log_api import get_logger, COLOR
 
 if TYPE_CHECKING:
@@ -41,8 +41,8 @@ class EmailChatter(BaseChatter):
     保证与主 chatter 人设一致。
     """
 
-    chatter_name = "email_chatter"
-    chatter_description = "邮箱回复与拟人思考组件"
+    name = "email_chatter"
+    description = "邮箱回复与拟人思考组件"
     associated_platforms = ["email"]
     chat_type = ChatType.PRIVATE
     dependencies = [

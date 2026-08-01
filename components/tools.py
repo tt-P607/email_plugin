@@ -18,8 +18,8 @@ ATTACHMENTS_DIR = Path("data/email_plugin/test_attachments")
 class CheckEmailTool(BaseTool):
     """主动检查收件箱最新邮件。"""
 
-    tool_name = "check_email"
-    tool_description = "主动检查邮箱中是否有最新收到的未读/未处理邮件"
+    name = "check_email"
+    description = "主动检查邮箱中是否有最新收到的未读/未处理邮件"
 
     async def execute(
         self,
@@ -58,8 +58,8 @@ class CheckEmailTool(BaseTool):
 class SearchEmailTool(BaseTool):
     """搜索邮箱中往期已处理或历史邮件。"""
 
-    tool_name = "search_email"
-    tool_description = "搜索本地已归档的往期邮件历史，可以通过主题、发件人等关键词检索"
+    name = "search_email"
+    description = "搜索本地已归档的往期邮件历史，可以通过主题、发件人等关键词检索"
 
     async def execute(
         self,
@@ -102,8 +102,8 @@ class ListAttachmentsTool(BaseTool):
     附件文件存放目录：data/email_plugin/test_attachments/
     """
 
-    tool_name = "list_attachments"
-    tool_description = "查看附件目录中可用的文件列表，用于发送带附件的邮件时选择文件"
+    name = "list_attachments"
+    description = "查看附件目录中可用的文件列表，用于发送带附件的邮件时选择文件"
 
     async def execute(self) -> tuple[bool, str | list[dict[str, Any]]]:
         """列出附件目录中的所有文件。"""

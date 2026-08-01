@@ -21,9 +21,8 @@ logger = get_logger("email_plugin.service", display="邮件服务")
 class EmailService(BaseService):
     """邮箱业务服务组件。"""
 
-    service_name = "email_service"
-    service_description = "提供邮箱收发及三态管理、存储归档的主服务接口"
-    version = "2.0.0"
+    name = "email_service"
+    description = "提供邮箱收发及三态管理、存储归档的主服务接口"
 
     def __init__(self, plugin: Any) -> None:
         super().__init__(plugin)

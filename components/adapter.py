@@ -30,9 +30,9 @@ logger = get_logger("email_plugin.adapter", color=COLOR.CYAN)
 class EmailAdapter(BaseAdapter):
     """邮箱入站适配器组件。"""
 
-    adapter_name = "email_adapter"
+    name = "email_adapter"
     adapter_version = "2.0.0"
-    adapter_description = "邮箱 IMAP 轮询入站适配器"
+    description = "邮箱 IMAP 轮询入站适配器"
     platform = "email"
 
     def __init__(self, core_sink: CoreSink, plugin: Any | None, **kwargs: Any) -> None:
