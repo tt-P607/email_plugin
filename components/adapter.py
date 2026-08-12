@@ -31,7 +31,6 @@ class EmailAdapter(BaseAdapter):
     """邮箱入站适配器组件。"""
 
     name = "email_adapter"
-    adapter_version = "2.0.0"
     description = "邮箱 IMAP 轮询入站适配器"
     platform = "email"
 
