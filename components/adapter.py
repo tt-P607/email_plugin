@@ -14,9 +14,13 @@ from typing import TYPE_CHECKING, Any, cast
 from mofox_wire import CoreSink, MessageEnvelope
 from mofox_wire.types import UserRole
 
-from src.app.plugin_system.base import BaseAdapter
-from src.app.plugin_system.api.log_api import get_logger, COLOR
+from src.app.plugin_system.api.log_api import COLOR, get_logger
 from src.app.plugin_system.api.service_api import get_service
+from src.app.plugin_system.base import (
+    BaseAdapter,
+    PlatformSendResult,
+    PlatformSendStatus,
+)
 from src.kernel.concurrency import get_task_manager
 
 from ..config import EmailPluginConfig
@@ -168,13 +172,17 @@ class EmailAdapter(BaseAdapter):
             "EmailAdapter utilizes poll loop and does not parse raw server push messages."
         )
 
-    async def _send_platform_message(self, envelope: MessageEnvelope) -> None:
+    async def _send_platform_message(self, envelope: MessageEnvelope) -> PlatformSendResult:
         """发送平台消息。
 
         邮件的真正发送动作由 reply_email Action 通过 EmailService 完成，
         不走 Adapter 管道，因此这里为空实现。
         """
-        pass
+        return PlatformSendResult(
+            success=False,
+            status=PlatformSendStatus.FAILED,
+            error="EmailAdapter 不支持通用消息出站；请使用 reply_email Action",
+        )
 
     async def get_bot_info(self) -> dict[str, Any]:
         """获取 Bot 邮箱标识信息。"""

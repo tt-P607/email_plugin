@@ -4,6 +4,7 @@
     "log_api": "1.0.0",
     "prompt_api": "1.0.0",
     "service_api": "1.0.0",
+    "send_api": "1.3.0",
     "storage_api": "1.0.0"
   },
   "display_name": "邮箱插件",

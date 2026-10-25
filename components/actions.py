@@ -10,9 +10,11 @@ import mimetypes
 from pathlib import Path
 from typing import TYPE_CHECKING, Annotated, AsyncGenerator, cast
 
-from src.core.components.base.action import BaseAction
-from src.app.plugin_system.api.log_api import get_logger, COLOR
+from src.app.plugin_system.api.log_api import COLOR, get_logger
+from src.app.plugin_system.api.send_api import format_send_result
 from src.app.plugin_system.api.service_api import get_service
+from src.app.plugin_system.base import PlatformSendStatus
+from src.core.components.base.action import BaseAction
 
 if TYPE_CHECKING:
     from .service import EmailService
@@ -79,19 +81,22 @@ class ReplyEmailAction(BaseAction):
                     logger.warning(f"附件文件不存在: {filename}")
 
         try:
-            success = await email_service.send_mail(
+            result = await email_service.send_mail_result(
                 to_address=to_email,
                 subject=subject,
                 body_text=content,
                 reply_to_msg_id=reply_to_msg_id if reply_to_msg_id else None,
                 attachments=attachment_list if attachment_list else None,
             )
-            if success:
+            success, receipt = format_send_result(
+                result, f"邮件已成功发送给 {to_email}",
+            )
+            if result.status is PlatformSendStatus.SENT:
                 att_info = f"（含 {len(attachment_list)} 个附件）" if attachment_list else ""
                 logger.info(f"已回复邮件给 {to_email}，主题: {subject}{att_info}")
-                yield True, f"邮件已成功发送给 {to_email}{att_info}"
-            else:
-                yield False, f"发送邮件给 {to_email} 失败"
+                if att_info:
+                    receipt = f"{receipt}{att_info}"
+            yield success, receipt
         except Exception as e:
             logger.error(f"回复邮件异常: {e}")
             yield False, f"发送邮件异常: {e}"

@@ -9,11 +9,13 @@ from __future__ import annotations
 import datetime
 from typing import Any
 
-from src.core.components.base.service import BaseService
 from src.app.plugin_system.api.log_api import get_logger
+from src.app.plugin_system.base import PlatformSendResult, PlatformSendStatus
+from src.core.components.base.service import BaseService
+
+from ..config import EmailPluginConfig
 from ..core.mail_client import MailClient, MailMessage
 from ..core.mail_tracker import EmailStatus, MailTracker
-from ..config import EmailPluginConfig
 
 logger = get_logger("email_plugin.service", display="邮件服务")
 
@@ -87,6 +89,20 @@ class EmailService(BaseService):
         reply_to_msg_id: str | None = None,
     ) -> bool:
         """主动发送或回复一封邮件，并自动将自己发出的邮件归档存根。"""
+        result = await self.send_mail_result(
+            to_address, subject, body_text, attachments, reply_to_msg_id,
+        )
+        return result.status is PlatformSendStatus.SENT
+
+    async def send_mail_result(
+        self,
+        to_address: str,
+        subject: str,
+        body_text: str,
+        attachments: list[dict[str, Any]] | None = None,
+        reply_to_msg_id: str | None = None,
+    ) -> PlatformSendResult:
+        """发送邮件并保留 SMTP 确认与本地归档结果。"""
         client = self._get_client()
 
         # 如果是回复邮件，从归档中查找原邮件的 References 以构建完整对话链
@@ -96,7 +112,7 @@ class EmailService(BaseService):
             if orig_mail:
                 references = orig_mail.references
 
-        success = await client.send_email(
+        result = await client.send_email_result(
             to_address=to_address,
             subject=subject,
             body_text=body_text,
@@ -104,33 +120,39 @@ class EmailService(BaseService):
             reply_to_msg_id=reply_to_msg_id,
             references=references,
         )
-        if success:
-            config = self.plugin.config
-            display_name = (
-                config.chatter.bot_email_display_name
-                if isinstance(config, EmailPluginConfig)
-                else "小狐狸"
-            )
-            sent_mail = MailMessage(
-                message_id=f"sent-{datetime.datetime.now().timestamp()}",
-                subject=subject,
-                sender=client.email_address,
-                sender_name=display_name,
-                recipient=to_address,
-                body=body_text,
-                date_str=datetime.datetime.now().strftime(
-                    "%a, %d %b %Y %H:%M:%S +0800"
-                ),
-                attachments=[
-                    {"filename": att.get("filename", "file"), "size": 0}
-                    for att in (attachments or [])
-                ],
-            )
-            await self.tracker.archive_mail(sent_mail)
-            # 如果是回复某封邮件，将原邮件标记为 REPLIED
-            if reply_to_msg_id:
-                await self.mark_replied(reply_to_msg_id)
-        return success
+        if result.status is PlatformSendStatus.SENT:
+            try:
+                config = self.plugin.config
+                display_name = (
+                    config.chatter.bot_email_display_name
+                    if isinstance(config, EmailPluginConfig)
+                    else "小狐狸"
+                )
+                sent_mail = MailMessage(
+                    message_id=f"sent-{datetime.datetime.now().timestamp()}",
+                    subject=subject,
+                    sender=client.email_address,
+                    sender_name=display_name,
+                    recipient=to_address,
+                    body=body_text,
+                    date_str=datetime.datetime.now().strftime(
+                        "%a, %d %b %Y %H:%M:%S +0800"
+                    ),
+                    attachments=[
+                        {"filename": att.get("filename", "file"), "size": 0}
+                        for att in (attachments or [])
+                    ],
+                )
+                await self.tracker.archive_mail(sent_mail)
+                if reply_to_msg_id:
+                    await self.mark_replied(reply_to_msg_id)
+            except Exception as error:
+                return PlatformSendResult(
+                    success=False,
+                    status=PlatformSendStatus.SENT,
+                    error=f"{error}；邮件已由 SMTP 接受，不要重复发送",
+                )
+        return result
 
     async def search_emails(self, query: str, limit: int = 10) -> list[MailMessage]:
         """按关键词查询本地留档的往期所有邮件历史。"""

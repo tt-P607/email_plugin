@@ -7,17 +7,18 @@
 from __future__ import annotations
 
 import asyncio
-from email.header import decode_header
-from email.message import EmailMessage
 import email.parser
 import email.policy
-from email.utils import make_msgid, parseaddr
 import imaplib
 import os
 import smtplib
+from email.header import decode_header
+from email.message import EmailMessage
+from email.utils import make_msgid, parseaddr
 from typing import Any
 
 from src.app.plugin_system.api.log_api import get_logger
+from src.app.plugin_system.base import PlatformSendResult, PlatformSendStatus
 
 logger = get_logger("email_plugin.mail_client", display="邮件客户端")
 
@@ -266,11 +267,26 @@ class MailClient:
         references: str = "",
     ) -> bool:
         """同步发送邮件。"""
+        return self._sync_send_email_result(
+            to_address, subject, body_text, attachments, reply_to_msg_id, references,
+        ).status is PlatformSendStatus.SENT
+
+    def _sync_send_email_result(
+        self,
+        to_address: str,
+        subject: str,
+        body_text: str,
+        attachments: list[dict[str, Any]] | None = None,
+        reply_to_msg_id: str | None = None,
+        references: str = "",
+    ) -> PlatformSendResult:
+        """同步发送邮件并保留 SMTP 确认状态。"""
         if not self.email_address or not self.password:
             logger.warning("未配置邮箱账户或密码，拒绝发送邮件")
-            return False
+            return PlatformSendResult(success=False, error="未配置邮箱账户或密码")
 
         server: smtplib.SMTP | None = None
+        submission_started = False
         try:
             msg = EmailMessage(policy=email.policy.SMTP)
             msg["Subject"] = subject
@@ -339,12 +355,25 @@ class MailClient:
             server.login(self.email_address, self.password)
             # 打印完整 header 用于调试
             logger.info(f"发送邮件 header: In-Reply-To={msg.get('In-Reply-To', '无')}, References={msg.get('References', '无')}")
-            server.send_message(msg)
+            submission_started = True
+            refused = server.send_message(msg)
+            if refused:
+                return PlatformSendResult(
+                    success=False,
+                    status=PlatformSendStatus.FAILED,
+                    error=f"SMTP 拒收收件人：{', '.join(refused)}",
+                )
             logger.info(f"邮件成功发送至 {to_address}，主题: {subject}")
-            return True
+            return PlatformSendResult(success=True)
         except Exception as e:
             logger.error(f"SMTP 发送邮件失败: {e}")
-            return False
+            status = PlatformSendStatus.FAILED
+            if isinstance(e, TimeoutError) or (
+                submission_started
+                and isinstance(e, (OSError, smtplib.SMTPServerDisconnected))
+            ):
+                status = PlatformSendStatus.UNKNOWN
+            return PlatformSendResult(success=False, status=status, error=str(e))
         finally:
             if server is not None:
                 try:
@@ -362,8 +391,23 @@ class MailClient:
         references: str = "",
     ) -> bool:
         """异步发送邮件。"""
+        result = await self.send_email_result(
+            to_address, subject, body_text, attachments, reply_to_msg_id, references,
+        )
+        return result.status is PlatformSendStatus.SENT
+
+    async def send_email_result(
+        self,
+        to_address: str,
+        subject: str,
+        body_text: str,
+        attachments: list[dict[str, Any]] | None = None,
+        reply_to_msg_id: str | None = None,
+        references: str = "",
+    ) -> PlatformSendResult:
+        """异步发送邮件并返回 SMTP 状态与错误原因。"""
         return await asyncio.to_thread(
-            self._sync_send_email,
+            self._sync_send_email_result,
             to_address,
             subject,
             body_text,
